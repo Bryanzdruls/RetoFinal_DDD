@@ -1,5 +1,6 @@
 package com.example.catanddd.domain.board.entities.turn;
 
+import com.example.catanddd.domain.board.entities.turn.values.Dice;
 import com.example.catanddd.domain.player.Player;
 import com.example.catanddd.domain.board.entities.turn.values.PlayerName;
 import com.example.catanddd.domain.board.entities.turn.values.TurnId;
@@ -7,8 +8,11 @@ import com.example.catanddd.domain.generic.Entity;
 
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.Random;
 
-public class Turn  extends Entity<TurnId> {
+public class Turn extends Entity<TurnId> {
+
+    private Dice dice;
 
     private PlayerName playerName;
 
@@ -25,6 +29,11 @@ public class Turn  extends Entity<TurnId> {
         this.playerName = playerName;
         this.playerInTurn = playerInTurn;
         this.playerQueue = playerQueue;
+
+
+        Random random = new Random();
+        int randomNumberBetween2And12 = random.nextInt(11) + 2;
+        this.dice= Dice.of(randomNumberBetween2And12);
     }
 
     private Turn(TurnId turnId, PlayerName playerName ) {

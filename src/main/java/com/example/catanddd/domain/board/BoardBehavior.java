@@ -1,37 +1,33 @@
 package com.example.catanddd.domain.board;
 
+import com.example.catanddd.domain.board.entities.corner.Corner;
+import com.example.catanddd.domain.board.entities.corner.values.CornerId;
+import com.example.catanddd.domain.board.entities.corner.values.IsCornerAvailable;
+import com.example.catanddd.domain.board.entities.corner.values.Structure;
 import com.example.catanddd.domain.board.entities.knight.Knight;
 import com.example.catanddd.domain.board.entities.knight.values.KnightId;
 import com.example.catanddd.domain.board.entities.terrain.Terrain;
-import com.example.catanddd.domain.board.entities.terrain.values.TerrainEnum;
-import com.example.catanddd.domain.board.entities.terrain.values.TerrainId;
-import com.example.catanddd.domain.board.entities.terrain.values.TerrainName;
-import com.example.catanddd.domain.board.entities.terrain.values.TerrainNumber;
+import com.example.catanddd.domain.board.entities.terrain.values.*;
+import com.example.catanddd.domain.board.entities.terrain.values.enums.ResourceEnum;
 import com.example.catanddd.domain.board.entities.turn.Turn;
 import com.example.catanddd.domain.board.entities.turn.values.PlayerName;
 import com.example.catanddd.domain.board.entities.turn.values.TurnId;
-import com.example.catanddd.domain.board.events.ChangedTurn;
-import com.example.catanddd.domain.board.events.ChangedTurnReverse;
-import com.example.catanddd.domain.board.events.GeneratedBoard;
-import com.example.catanddd.domain.board.events.GeneratedTerrain;
+import com.example.catanddd.domain.board.events.*;
 import com.example.catanddd.domain.generic.EventChange;
-import com.example.catanddd.domain.generic.Identity;
 import com.example.catanddd.domain.player.Player;
+import com.example.catanddd.domain.player.entities.structure.values.enums.StructureTypeEnum;
 import com.example.catanddd.domain.player.values.PlayerId;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.Stack;
+import java.util.*;
 
 public class BoardBehavior extends EventChange {
 
     public BoardBehavior(Board board) {
         apply((GeneratedBoard event)->{
-            board.dice = null;
             board.knight = new Knight(KnightId.of(event.knightId()));
 
             Queue<Player> playerQueue = new LinkedList<>();
+
             final String NAME = "PLAYER_";
             for (String playerId : event.playersIds()) {
                 Player player = Player.from(
@@ -67,9 +63,8 @@ public class BoardBehavior extends EventChange {
                     TerrainName.of(TerrainEnum.valueOf(event.terrainType()))
             );
 
-
             if (board.terrains().size() < 19){
-                terrainValidations(board,terrain);
+                terrainValidations(board, terrain);
             }
         });
 
@@ -104,7 +99,6 @@ public class BoardBehavior extends EventChange {
             }
 
             Stack<Player> turnReverse = new Stack<Player>();
-            Queue<Player> playerQueueBefore= new LinkedList<>(turn.playerQueue());
             Queue<Player> playerQueue = new LinkedList<>(turn.playerQueue());
 
             while (!playerQueue.isEmpty()) {
@@ -115,7 +109,6 @@ public class BoardBehavior extends EventChange {
                 playerQueue.add(turnReverse.pop());
             }
 
-
             Player playerInTurn = playerQueue.poll();
             playerQueue.add(playerInTurn);
 
@@ -124,6 +117,56 @@ public class BoardBehavior extends EventChange {
             }
 
             turn.updateTurn(playerInTurn, playerQueue);
+        });
+
+        apply((AddedResourceToPlayer event)->{
+            Corner corner = Corner.from(CornerId.of(event.cornerId()),
+                    IsCornerAvailable.of(event.isCornerAvailable()));
+
+            corner.putStructure(Structure.of(StructureTypeEnum.SETTLEMENT, PlayerId.of(event.playerId())));
+
+            board.corner.add(corner);
+
+            List<Corner> corners = board.corner;
+
+            Optional<Corner> foundCorner = corners.stream()
+                    .filter(o -> o.identity().equals(corner.identity()))
+                    .findFirst();
+
+            if (foundCorner.isEmpty()) {
+                throw new IllegalStateException("Corner don't exist");
+            }
+            Player player = Player.from(event.playerId(), event.playerName());
+
+            List<Resource> resourceBoardAggregate = foundCorner.get().addResourceToPlayer(player);
+            final String QUANTITY = "QUANTITY";
+            final String NAME = "NAME";
+
+            for (Resource resource:resourceBoardAggregate) {
+                player.addResources(com.example.catanddd.domain.player.values.Resource.of(
+                        (Integer) resource.value().get(QUANTITY),
+                        (ResourceEnum) resource.value().get(NAME)
+                ));
+            }
+        });
+
+        apply((KnightMovedTo event) -> {
+            Knight knight = board.knight;
+
+            if (knight == null){
+                throw new IllegalStateException("Knight wasn't instantiated properly. Did you generate the board?");
+            }
+            Terrain terrain =  Terrain.from(TerrainId.of(event.terrainId()));
+
+            if (terrain.isKnightHere()) {
+                throw new IllegalStateException("Knight is already here");
+            }
+
+            if (knight.terrainLocated() != null){
+                knight.terrainLocated().setKnight(null);
+            }
+
+            knight.moveTo(terrain);
         });
     }
 

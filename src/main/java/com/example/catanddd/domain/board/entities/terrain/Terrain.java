@@ -1,5 +1,6 @@
 package com.example.catanddd.domain.board.entities.terrain;
 
+import com.example.catanddd.domain.board.entities.corner.Corner;
 import com.example.catanddd.domain.board.entities.knight.Knight;
 import com.example.catanddd.domain.player.Player;
 import com.example.catanddd.domain.board.entities.terrain.values.*;
@@ -20,9 +21,11 @@ public class Terrain extends Entity<TerrainId> {
 
     private Resource resource;
 
+    private List<Corner> corners;
+
     private List<StructureId> structures;
 
-    public Terrain(TerrainId id) {
+    private Terrain(TerrainId id) {
         super(id);
     }
 
@@ -33,13 +36,24 @@ public class Terrain extends Entity<TerrainId> {
         this.terrainName = terrainName;
         this.resource = generateResource(terrainName);
         this.structures = new ArrayList<>();
+        this.corners = new ArrayList<>();
     }
 
     public static Terrain from(TerrainId terrainId, TerrainNumber terrainNumber, TerrainName terrainName){
         return new Terrain(terrainId, terrainNumber, terrainName);
     }
 
+    public static Terrain from(TerrainId terrainId){
+        return new Terrain(terrainId);
+    }
+
     public TerrainEnum terrainType (){return terrainName.value();}
+
+    public List<Corner> corners (){return corners;}
+
+    public void addCorner(Corner corner){
+        this.corners.add(corner);
+    }
 
     public Integer terrainNumber(){
         return this.TerrainNumber.value();
@@ -78,7 +92,7 @@ public class Terrain extends Entity<TerrainId> {
             return null;
         }
 
-        if (validateEnum(terrainName.value())){
+        if (!validateEnum(terrainName.value())){
             throw new IllegalStateException("Isn't a valid Terrain "+terrainName.value());
         }
         TerrainEnum terrainNameVerified = terrainName.value();

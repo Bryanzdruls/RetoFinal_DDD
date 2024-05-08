@@ -4,8 +4,10 @@ import com.example.catanddd.bussiness.generic.IEventsRepository;
 import com.example.catanddd.domain.board.commands.ChangeTurnCommand;
 import com.example.catanddd.domain.board.commands.ChangeTurnReverseCommand;
 import com.example.catanddd.domain.board.events.ChangedTurn;
+import com.example.catanddd.domain.board.events.ChangedTurnReverse;
 import com.example.catanddd.domain.board.events.GeneratedBoard;
 import com.example.catanddd.domain.generic.DomainEvent;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -64,9 +66,13 @@ class ChangeTurnReverseUseCaseTest {
 
         List<DomainEvent> result = changeTurnReverseUseCase.apply(changeTurnReverseCommand);
 
-        ChangedTurn changedTurnResult = (ChangedTurn) result.get(0);
-        assertEquals("testBoardId",changedTurnResult.getBoardId());
-        assertEquals();
-        assertEquals();
+        ChangedTurnReverse changedTurnReverseResult = (ChangedTurnReverse) result.get(0);
+
+
+        assertEquals(changedTurnReverseResult.playersInGame().poll(), playersIds.get(0));
+        Assertions.assertEquals(changedTurnReverseResult.turnPlayerName(), generatedBoard.turnPlayerName());
+        Assertions.assertEquals(changedTurnReverseResult.boardId(), generatedBoard.aggregateRootId());
+        Assertions.assertNotSame(changedTurnReverseResult.playersInGame(), generatedBoard.playersIds());
     }
+
 }

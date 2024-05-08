@@ -7,30 +7,36 @@ public class AddedResourceToPlayer extends DomainEvent {
 
     private String boardId;
 
-    private String resourceId;
+    private String cornerId;
 
     private Integer quantityResource;
 
+    private boolean isCornerAvailable;
+
     private String playerId;
+
+    private String playerName;
 
     public AddedResourceToPlayer() {
         super(EventEnum.ADDED_RESOURCE_TO_PLAYER.name());
     }
 
-    public AddedResourceToPlayer(String boardId, String resourceId, Integer quantityResource, String playerId) {
+    public AddedResourceToPlayer(String boardId, String cornerId, Integer quantityResource, boolean isCornerAvailable, String playerId, String playerName) {
         super(EventEnum.ADDED_RESOURCE_TO_PLAYER.name());
         this.boardId = boardId;
-        this.resourceId = resourceId;
+        this.cornerId = cornerId;
         this.quantityResource = quantityResource;
+        this.isCornerAvailable = isCornerAvailable;
         this.playerId = playerId;
+        this.playerName = playerName;
     }
 
     public String boardId() {
         return boardId;
     }
 
-    public String resourceId() {
-        return resourceId;
+    public String cornerId() {
+        return cornerId;
     }
 
     public Integer quantityResource() {
@@ -39,5 +45,13 @@ public class AddedResourceToPlayer extends DomainEvent {
 
     public String playerId() {
         return playerId;
+    }
+
+    public boolean isCornerAvailable() {
+        return isCornerAvailable;
+    }
+
+    public String playerName() {
+        return playerName;
     }
 }

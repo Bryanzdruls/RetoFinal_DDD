@@ -1,31 +1,28 @@
-package com.example.catanddd.bussiness.board.terrain;
+package com.example.catanddd.bussiness.board.knight;
 
 import com.example.catanddd.bussiness.generic.ICommandUseCase;
 import com.example.catanddd.bussiness.generic.IEventsRepository;
 import com.example.catanddd.domain.board.Board;
-import com.example.catanddd.domain.board.commands.AddResourceToPlayerCommand;
+import com.example.catanddd.domain.board.commands.knight.KnightMovedToCommand;
 import com.example.catanddd.domain.generic.DomainEvent;
 
 import java.util.List;
 
-public class AddResourceToPlayerUseCase implements ICommandUseCase<AddResourceToPlayerCommand> {
-    private final IEventsRepository eventsRepository;
+public class KnightMoveToUseCase implements ICommandUseCase<KnightMovedToCommand> {
+    private IEventsRepository eventsRepository;
 
-    public AddResourceToPlayerUseCase(IEventsRepository eventsRepository) {
+    public KnightMoveToUseCase(IEventsRepository eventsRepository) {
         this.eventsRepository = eventsRepository;
     }
-
     @Override
-    public List<DomainEvent> apply(AddResourceToPlayerCommand command) {
+    public List<DomainEvent> apply(KnightMovedToCommand command) {
         List<DomainEvent> result = eventsRepository.findAggregateRootId(command.boardId());
         Board board = Board.from(command.boardId(),result);
 
-        //Objects.requireNonNull(StructureId.of(command.getStructureId()),"Terrain Id cannot be null");
-        board.addResourceToPlayer(
+        board.knightMoveTo(
                 command.boardId(),
-                command.resourceId(),
-                command.quantityResource(),
-                command.playerId()
+                command.knightId(),
+                command.terrainId()
         );
 
         List<DomainEvent> domainEvents =  board.getUncommittedChanges();

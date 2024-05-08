@@ -27,17 +27,17 @@ class GenerateTerrainUseCaseTest {
     @Mock
     private IEventsRepository eventsRepository;
 
-    @InjectMocks
-    private GenerateBoardUseCase generateBoardUseCase;
 
     @InjectMocks
     private GenerateTerrainUseCase generateTerrainUseCase;
+
 
 
     @DisplayName("GenerateTerrainUseCase")
     @Test
     void generateTerrain() {
         List<String> playersIds = new ArrayList<>();
+
 
         playersIds.add("brian");
         playersIds.add("juan");
@@ -53,6 +53,12 @@ class GenerateTerrainUseCaseTest {
                 "brianInTurnId"
         );
 
+        generatedBoard.setAggregateRootI("testBoardId");
+        List<DomainEvent> domainEvents = new ArrayList<>();
+
+        domainEvents.add(generatedBoard);
+
+        Mockito.when(eventsRepository.findAggregateRootId("testBoardId")).thenReturn(domainEvents);
 
 
         List<Integer> numeros = generateTerrainNumbers();
@@ -87,26 +93,14 @@ class GenerateTerrainUseCaseTest {
         for (int i=0; i< 19; i++){
             if (terrainList.get(i).equals(TerrainEnum.DESERT)){
                 GenerateTerrainCommand generatedTerrainCommand = new GenerateTerrainCommand(
-                        "boardId",
+                        "testBoardId",
                         "terrain"+i,
                         0,
                         terrainList.get(i).toString()
                 );
 
-                Mockito.when(eventsRepository.findAggregateRootId(generatedTerrainCommand.boardId()))
-                        .thenAnswer(invocationOnMock -> {
-                            List<DomainEvent> boardEvents = new ArrayList<>();
-                            boardEvents.add(generatedBoard);
-                            return boardEvents;
-                        });
-
-                Mockito.when(eventsRepository.save(ArgumentMatchers.any(DomainEvent.class)))
-                        .thenAnswer(invocationOnMock -> invocationOnMock.getArgument(0));
-
-
-                generateTerrainUseCase.apply(generatedTerrainCommand);
-
-
+                List<DomainEvent> result = generateTerrainUseCase.apply(generatedTerrainCommand);
+                domainEvents.addAll(result);
             }else{
                 GenerateTerrainCommand generatedTerrainCommand = new GenerateTerrainCommand(
                         "boardId",
@@ -114,19 +108,96 @@ class GenerateTerrainUseCaseTest {
                         numeros.get(i),
                         terrainList.get(i).toString()
                 );
-
-                Mockito.when(eventsRepository.findAggregateRootId(generatedTerrainCommand.boardId()))
-                        .thenAnswer(invocationOnMock -> {
-                            List<DomainEvent> clientEvents = new ArrayList<>();
-                            clientEvents.add(generatedBoard);
-                            return clientEvents;
-                        });
-
-                generateTerrainUseCase.apply(generatedTerrainCommand);
+                List<DomainEvent> result = generateTerrainUseCase.apply(generatedTerrainCommand);
+                domainEvents.addAll(result);
             }
         }
+        final int DOMAIN_EVENTS_MINUS_CREATION_BOARD = 1;
+        assertEquals(terrainList.size(),domainEvents.size() - DOMAIN_EVENTS_MINUS_CREATION_BOARD);
     }
 
+
+    @DisplayName("GenerateTerrainNotEnoughTerrains")
+    @Test
+    void generateTerrainNotEnoughTerrains() {
+        List<String> playersIds = new ArrayList<>();
+
+
+        playersIds.add("brian");
+        playersIds.add("juan");
+        playersIds.add("pedro");
+        playersIds.add("valeria");
+
+        GeneratedBoard generatedBoard = new GeneratedBoard(
+                0,
+                "testKnightId",
+                "testTurnId",
+                "brian",
+                playersIds,
+                "brianInTurnId"
+        );
+        generatedBoard.setAggregateRootI("testBoardId");
+        List<DomainEvent> domainEvents = new ArrayList<>();
+
+        domainEvents.add(generatedBoard);
+
+        Mockito.when(eventsRepository.findAggregateRootId("testBoardId")).thenReturn(domainEvents);
+
+
+        List<Integer> numeros = generateTerrainNumbers();
+        List<TerrainEnum> terrainList = new ArrayList<>();
+
+        terrainList.add(TerrainEnum.DESERT);
+
+
+        terrainList.add(TerrainEnum.FOREST);
+        terrainList.add(TerrainEnum.FOREST);
+        terrainList.add(TerrainEnum.FOREST);
+        terrainList.add(TerrainEnum.FOREST);
+
+        terrainList.add(TerrainEnum.HILLS);
+        terrainList.add(TerrainEnum.HILLS);
+        terrainList.add(TerrainEnum.HILLS);
+        terrainList.add(TerrainEnum.HILLS);
+
+        terrainList.add(TerrainEnum.PASTURE);
+        terrainList.add(TerrainEnum.PASTURE);
+        terrainList.add(TerrainEnum.PASTURE);
+        terrainList.add(TerrainEnum.PASTURE);
+
+        terrainList.add(TerrainEnum.FIELDS);
+        terrainList.add(TerrainEnum.FIELDS);
+        terrainList.add(TerrainEnum.FIELDS);
+
+        terrainList.add(TerrainEnum.MOUNTAINS);
+        terrainList.add(TerrainEnum.MOUNTAINS);
+        terrainList.add(TerrainEnum.MOUNTAINS);
+
+        for (int i=0; i < 13; i++){
+            if (terrainList.get(i).equals(TerrainEnum.DESERT)){
+                GenerateTerrainCommand generatedTerrainCommand = new GenerateTerrainCommand(
+                        "testBoardId",
+                        "terrain"+i,
+                        0,
+                        terrainList.get(i).toString()
+                );
+
+                List<DomainEvent> result = generateTerrainUseCase.apply(generatedTerrainCommand);
+                domainEvents.addAll(result);
+            }else{
+                GenerateTerrainCommand generatedTerrainCommand = new GenerateTerrainCommand(
+                        "boardId",
+                        "terrain"+i,
+                        numeros.get(i),
+                        terrainList.get(i).toString()
+                );
+                List<DomainEvent> result = generateTerrainUseCase.apply(generatedTerrainCommand);
+                domainEvents.addAll(result);
+            }
+        }
+        final int DOMAIN_EVENTS_MINUS_CREATION_BOARD = 1;
+        assertNotEquals(terrainList.size(),domainEvents.size() - DOMAIN_EVENTS_MINUS_CREATION_BOARD);
+    }
 
     private static List<Integer> generateTerrainNumbers() {
         List<Integer> numerosTerrenos = new ArrayList<>();

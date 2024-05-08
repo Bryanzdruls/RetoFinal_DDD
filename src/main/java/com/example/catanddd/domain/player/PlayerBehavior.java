@@ -48,36 +48,12 @@ public class PlayerBehavior extends EventChange {
             player.structures = new ArrayList<>();
         });
 
-        /*apply((GeneratedStructure events) -> {
-            List<Terrain> terrainsList = new ArrayList<>();
-            int MAXIMUM_THREE_TERRAINS_TOUCHING_STRUCTURE = 1;
-
-            final List<String> TERRAINS_LIST =  Arrays.asList(
-                    TerrainEnum.FOREST.name(),
-                    TerrainEnum.HILLS.name(),
-                    TerrainEnum.PASTURE.name(),
-                    TerrainEnum.FIELDS.name(),
-                    TerrainEnum.MOUNTAINS.name()
-            );
-
-            for (TerrainId id: events.terrainsRelated()) {
-                if (MAXIMUM_THREE_TERRAINS_TOUCHING_STRUCTURE > 3){
-                    break;
-                }
-                int numero;
-                do {
-                    numero = ThreadLocalRandom.current().nextInt(2, 13);
-                } while (numero == 7);
-
-
-                terrainsList.add(Terrain.from(id));
-                MAXIMUM_THREE_TERRAINS_TOUCHING_STRUCTURE += 1;
-            }
-
-            player.structures.add(Structure.from(StructureId.of(events.structureId()),
+        apply((GeneratedStructure events) -> {
+            player.structures.add(Structure.from(
+                    StructureId.of(events.structureId()),
                     StructureType.of(StructureTypeEnum.valueOf(events.structureType())),
-
-                    ));
-        });*/
+                    events.terrainsRelated()
+            ));
+        });
     }
 }

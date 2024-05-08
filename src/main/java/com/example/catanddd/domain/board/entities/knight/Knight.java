@@ -22,7 +22,7 @@ public class Knight extends Entity<KnightId> {
     }
 
     public static Knight from(KnightId id, Terrain terrain) {
-        return new Knight(id, terrain);
+        return new Knight(id,terrain);
     }
 
     public Terrain terrainLocated() {
@@ -30,6 +30,11 @@ public class Knight extends Entity<KnightId> {
     }
 
     public Terrain moveTo(Terrain terrain) {
+        if (terrainLocated == null) {
+            terrain.setKnight(this);
+            this.terrainLocated =terrain;
+            return this.terrainLocated;
+        }
         if (!terrainLocated().isKnightHere()) {
             terrain.setKnight(this);
             this.terrainLocated = terrain;

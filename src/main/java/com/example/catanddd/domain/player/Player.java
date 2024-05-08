@@ -67,4 +67,8 @@ public class Player extends AggregateRoot<PlayerId> {
     public void generateStructure(String playerId, String structureId, String structureType, List<TerrainId> terrainRelated){
         appendChangeEvent(new GeneratedStructure(playerId, structureId, structureType,terrainRelated)).apply();
     }
+
+    public void addResources(Resource resource){
+        this.resources.add(resource);
+    }
 }

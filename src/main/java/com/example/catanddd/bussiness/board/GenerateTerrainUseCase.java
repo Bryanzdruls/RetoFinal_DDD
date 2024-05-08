@@ -22,7 +22,7 @@ public class GenerateTerrainUseCase implements ICommandUseCase<GenerateTerrainCo
     @Override
     public List<DomainEvent> apply(GenerateTerrainCommand command) {
         List<DomainEvent> result = eventsRepository.findAggregateRootId(command.boardId());
-        Board board = Board.from(command.boardId(),result);
+        Board board = Board.from(command.boardId(), result);
 
         //Objects.requireNonNull(StructureId.of(command.getStructureId()),"Terrain Id cannot be null");
         board.generateTerrain(

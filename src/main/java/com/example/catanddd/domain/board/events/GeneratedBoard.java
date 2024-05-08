@@ -33,6 +33,12 @@ public class GeneratedBoard extends DomainEvent {
         this.playerInTurnId = playerInTurnId;
     }
 
+    public GeneratedBoard(List<String> playersIds) {
+        super(EventEnum.GENERATED_TERRAIN.name());
+
+        this.playersIds = playersIds;
+
+    }
     public Integer dice() {
         return dice;
     }

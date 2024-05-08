@@ -25,6 +25,7 @@ public class GenerateBoardUseCase implements ICommandUseCase<GenerateBoardComman
                 command.playersIds(),
                 command.playerInTurnId()
         );
+
         List<DomainEvent> domainEvents = board.getUncommittedChanges();
         domainEvents.stream().map(eventsRepository::save);
 

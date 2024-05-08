@@ -1,16 +1,15 @@
 package com.example.catanddd.domain.board;
 
+import com.example.catanddd.domain.board.entities.corner.Corner;
 import com.example.catanddd.domain.board.entities.knight.Knight;
 import com.example.catanddd.domain.board.entities.terrain.Terrain;
 import com.example.catanddd.domain.board.entities.turn.Turn;
-import com.example.catanddd.domain.board.entities.turn.values.TurnId;
 import com.example.catanddd.domain.board.events.*;
 import com.example.catanddd.domain.board.values.BoardId;
-import com.example.catanddd.domain.board.values.Dice;
+import com.example.catanddd.domain.board.entities.turn.values.Dice;
+import com.example.catanddd.domain.board.values.Player;
 import com.example.catanddd.domain.generic.AggregateRoot;
 import com.example.catanddd.domain.generic.DomainEvent;
-import com.example.catanddd.domain.generic.Entity;
-import com.example.catanddd.domain.player.values.PlayerId;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,13 +17,13 @@ import java.util.Queue;
 
 public class Board extends AggregateRoot<BoardId> {
 
-    protected Dice dice;
-
     protected Knight knight;
 
     protected Turn turn;
 
-    //round
+    protected Player player;
+
+    protected List<Corner> corner;
 
     protected List<Terrain> terrains;
 
@@ -32,6 +31,7 @@ public class Board extends AggregateRoot<BoardId> {
         super(id);
         subscribe(new BoardBehavior(this));
         this.terrains = new ArrayList<>();
+        this.corner = new ArrayList<>();
     }
 
     public Board(String boardId, Integer dice, String knightId,
@@ -48,10 +48,6 @@ public class Board extends AggregateRoot<BoardId> {
        Board board = new Board(BoardId.of(boardId));
        events.forEach(board::applyEvent);
        return board;
-    }
-
-    public Integer dice() {
-        return dice.value();
     }
 
     public Integer knightTerrainLocated() {
@@ -79,7 +75,11 @@ public class Board extends AggregateRoot<BoardId> {
         appendChangeEvent(new ChangedTurnReverse(boardId, turnId, turnPlayerName, playersInGame)).apply();
     }
 
-    public void addResourceToPlayer(String boardId, String resourceId, Integer quantityResource, String playerId){
-        appendChangeEvent(new AddedResourceToPlayer(boardId, resourceId,  quantityResource, playerId)).apply();
+    public void addResourceToPlayer(String boardId, String cornerId, Integer quantityResource,boolean isCornerAvailable, String playerId, String playerName){
+        appendChangeEvent(new AddedResourceToPlayer(boardId, cornerId,  quantityResource, isCornerAvailable, playerId,playerName)).apply();
+    }
+
+    public void knightMoveTo(String boardId, String knightId, String terrainId){
+        appendChangeEvent(new KnightMovedTo(boardId, knightId, terrainId)).apply();
     }
 }

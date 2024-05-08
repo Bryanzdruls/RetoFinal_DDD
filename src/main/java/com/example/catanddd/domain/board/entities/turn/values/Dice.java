@@ -1,7 +1,6 @@
-package com.example.catanddd.domain.board.values;
+package com.example.catanddd.domain.board.entities.turn.values;
 
 import com.example.catanddd.domain.generic.ValueObject;
-import com.example.catanddd.domain.player.values.Points;
 
 public class Dice implements ValueObject<Integer> {
     private final Integer quantity;

@@ -44,11 +44,4 @@ public class GeneratedPlayer extends DomainEvent {
         return points;
     }
 
-    public List<String> getResources() {
-        return resources;
-    }
-
-    public List<StructurePrimitive> getStructures() {
-        return structures;
-    }
 }

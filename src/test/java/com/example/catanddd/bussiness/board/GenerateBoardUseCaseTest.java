@@ -2,27 +2,18 @@ package com.example.catanddd.bussiness.board;
 
 import com.example.catanddd.bussiness.generic.IEventsRepository;
 import com.example.catanddd.domain.board.commands.GenerateBoardCommand;
-import com.example.catanddd.domain.board.entities.knight.values.KnightId;
-import com.example.catanddd.domain.board.entities.turn.values.PlayerName;
-import com.example.catanddd.domain.board.entities.turn.values.TurnId;
 import com.example.catanddd.domain.board.events.GeneratedBoard;
-import com.example.catanddd.domain.board.values.BoardId;
-import com.example.catanddd.domain.board.values.Dice;
 import com.example.catanddd.domain.generic.DomainEvent;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentMatcher;
-import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
 @ExtendWith(MockitoExtension.class)
 class GenerateBoardUseCaseTest {
 
@@ -72,7 +63,6 @@ class GenerateBoardUseCaseTest {
                 .thenAnswer(invocation -> invocation.getArgument(0));*/
 
         List<DomainEvent> createBoardEvents = generateBoardUseCase.apply(generateBoardCommand);
-
 
 
         Assertions.assertEquals(1, createBoardEvents.size());
