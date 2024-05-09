@@ -63,8 +63,13 @@ public class Turn extends Entity<TurnId> {
         return this.playerQueue;
     }
 
-    public boolean firstRoundCheck(Player player, Player firstPlayer, Player lastPlayer){
-        return true;
+    public boolean firstRoundCheck(Player player){
+
+        if (!playerQueue.isEmpty() && !player.equals(playerQueue.peek())) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     public Turn updateTurn(Player playerInTurn, Queue<Player> playerQueue){
@@ -73,5 +78,10 @@ public class Turn extends Entity<TurnId> {
         this.playerQueue = playerQueue;
 
         return this;
+    }
+
+    public int rollDice() {
+        Random random = new Random();
+        return random.nextInt(11) + 2;
     }
 }

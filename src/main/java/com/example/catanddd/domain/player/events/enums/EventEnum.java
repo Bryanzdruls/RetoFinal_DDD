@@ -4,5 +4,7 @@ import com.example.catanddd.domain.player.events.GeneratedPlayer;
 
 public enum EventEnum {
     GENERATED_PLAYER,
-    GENERATED_STRUCTURE
+    GENERATED_STRUCTURE,
+
+    UPDATED_SETTLEMENT
 }

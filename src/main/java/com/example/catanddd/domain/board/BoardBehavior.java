@@ -24,152 +24,182 @@ public class BoardBehavior extends EventChange {
 
     public BoardBehavior(Board board) {
         apply((GeneratedBoard event)->{
-            board.knight = new Knight(KnightId.of(event.knightId()));
-
-            Queue<Player> playerQueue = new LinkedList<>();
-
-            final String NAME = "PLAYER_";
-            for (String playerId : event.playersIds()) {
-                Player player = Player.from(
-                        playerId,
-                        NAME + playerId.toUpperCase()
-                );
-                playerQueue.add(player);
-            }
-
-            Player firstPlayer = playerQueue.poll();
-            playerQueue.add(firstPlayer);
-
-
-            board.turn = Turn.from(
-                    TurnId.of(event.turnId()),
-                    PlayerName.of(event.turnPlayerName()),
-                    firstPlayer,
-                    playerQueue
-            );
-            board.terrains = new ArrayList<Terrain>();
+            generateBoard(board,event);
         });
 
         apply((GeneratedTerrain event)->{
-            try {
-                TerrainEnum.valueOf(event.terrainType());
-            }catch (Exception e) {
-                throw new IllegalArgumentException("TerrainType " + event.terrainType()+ " Is not supported");
-            }
-
-            Terrain terrain = Terrain.from(
-                    TerrainId.of(event.terrainId()),
-                    TerrainNumber.of(event.terrainNumber()),
-                    TerrainName.of(TerrainEnum.valueOf(event.terrainType()))
-            );
-
-            if (board.terrains().size() < 19){
-                terrainValidations(board, terrain);
-            }
+          generateTerrain(board, event);
         });
 
         apply((ChangedTurn event)->{
-            Turn turn = board.turn;
-
-            if (turn == null){
-                throw new IllegalStateException("Turn wasn't instantiated properly. Did you generate the board?");
-            }
-            if (turn.playerQueue().isEmpty()) {
-                throw new IllegalStateException("For some unexpected reason playerQueue is empty");
-            }
-            Queue<Player> playerQueue = turn.playerQueue();
-            Player playerInTurn = playerQueue.poll();
-            playerQueue.add(playerInTurn);
-
-            if (playerInTurn == null) {
-                throw new IllegalStateException("For some reason playerInTurn was null");
-            }
-
-            turn.updateTurn(playerInTurn, playerQueue);
+            changeTurn(board, event);
         });
 
         apply((ChangedTurnReverse event)->{
-            Turn turn = board.turn;
-
-            if (turn == null){
-                throw new IllegalStateException("Turn wasn't instantiated properly. Did you generate the board?");
-            }
-            if (turn.playerQueue().isEmpty()) {
-                throw new IllegalStateException("For some unexpected reason playerQueue is empty");
-            }
-
-            Stack<Player> turnReverse = new Stack<Player>();
-            Queue<Player> playerQueue = new LinkedList<>(turn.playerQueue());
-
-            while (!playerQueue.isEmpty()) {
-                turnReverse.push(playerQueue.poll());
-            }
-
-            while (!turnReverse.isEmpty()) {
-                playerQueue.add(turnReverse.pop());
-            }
-
-            Player playerInTurn = playerQueue.poll();
-            playerQueue.add(playerInTurn);
-
-            if (playerInTurn == null) {
-                throw new IllegalStateException("For some reason playerInTurn was null");
-            }
-
-            turn.updateTurn(playerInTurn, playerQueue);
+            changeTurnReverse(board, event);
         });
 
         apply((AddedResourceToPlayer event)->{
-            Corner corner = Corner.from(CornerId.of(event.cornerId()),
-                    IsCornerAvailable.of(event.isCornerAvailable()));
-
-            corner.putStructure(Structure.of(StructureTypeEnum.SETTLEMENT, PlayerId.of(event.playerId())));
-
-            board.corner.add(corner);
-
-            List<Corner> corners = board.corner;
-
-            Optional<Corner> foundCorner = corners.stream()
-                    .filter(o -> o.identity().equals(corner.identity()))
-                    .findFirst();
-
-            if (foundCorner.isEmpty()) {
-                throw new IllegalStateException("Corner don't exist");
-            }
-            Player player = Player.from(event.playerId(), event.playerName());
-
-            List<Resource> resourceBoardAggregate = foundCorner.get().addResourceToPlayer(player);
-            final String QUANTITY = "QUANTITY";
-            final String NAME = "NAME";
-
-            for (Resource resource:resourceBoardAggregate) {
-                player.addResources(com.example.catanddd.domain.player.values.Resource.of(
-                        (Integer) resource.value().get(QUANTITY),
-                        (ResourceEnum) resource.value().get(NAME)
-                ));
-            }
+            addedResourceToPlayer(board, event);
         });
 
         apply((KnightMovedTo event) -> {
-            Knight knight = board.knight;
-
-            if (knight == null){
-                throw new IllegalStateException("Knight wasn't instantiated properly. Did you generate the board?");
-            }
-            Terrain terrain =  Terrain.from(TerrainId.of(event.terrainId()));
-
-            if (terrain.isKnightHere()) {
-                throw new IllegalStateException("Knight is already here");
-            }
-
-            if (knight.terrainLocated() != null){
-                knight.terrainLocated().setKnight(null);
-            }
-
-            knight.moveTo(terrain);
+            knightMovedTo(board,event);
         });
     }
 
+    private void generateBoard(Board board, GeneratedBoard event) {
+        board.knight = new Knight(KnightId.of(event.knightId()));
+
+        Queue<Player> playerQueue = new LinkedList<>();
+
+        final String NAME = "PLAYER_";
+        for (String playerId : event.playersIds()) {
+            Player player = Player.from(
+                    playerId,
+                    NAME + playerId.toUpperCase()
+            );
+            playerQueue.add(player);
+        }
+
+        Player firstPlayer = playerQueue.poll();
+        playerQueue.add(firstPlayer);
+
+
+        board.turn = Turn.from(
+                TurnId.of(event.turnId()),
+                PlayerName.of(event.turnPlayerName()),
+                firstPlayer,
+                playerQueue
+        );
+        board.terrains = new ArrayList<Terrain>();
+    }
+
+    private void generateTerrain(Board board,GeneratedTerrain event) {
+        try {
+            TerrainEnum.valueOf(event.terrainType());
+        }catch (Exception e) {
+            throw new IllegalArgumentException("TerrainType " + event.terrainType()+ " Is not supported");
+        }
+
+        Terrain terrain = Terrain.from(
+                TerrainId.of(event.terrainId()),
+                TerrainNumber.of(event.terrainNumber()),
+                TerrainName.of(TerrainEnum.valueOf(event.terrainType()))
+        );
+
+        if (board.terrains().size() < 19){
+            terrainValidations(board, terrain);
+        }
+    }
+    private void changeTurn(Board board, ChangedTurn event){
+        Turn turn = board.turn;
+
+        for (String playerId:event.playersInGame()) {
+            Player playerToAdd = Player.from(playerId,event.turnPlayerName());
+            turn.playerQueue().add(playerToAdd);
+        }
+
+        if (turn == null){
+            throw new IllegalStateException("Turn wasn't instantiated properly. Did you generate the board?");
+        }
+        if (turn.playerQueue().isEmpty()) {
+            throw new IllegalStateException("For some unexpected reason playerQueue is empty");
+        }
+        Queue<Player> playerQueue = turn.playerQueue();
+        Player playerInTurn = playerQueue.poll();
+        playerQueue.add(playerInTurn);
+
+        if (playerInTurn == null) {
+            throw new IllegalStateException("For some reason playerInTurn was null");
+        }
+
+        turn.updateTurn(playerInTurn, playerQueue);
+    }
+    private void changeTurnReverse(Board board, ChangedTurnReverse event){
+        Turn turn = board.turn;
+
+        for (String playerId:event.playersInGame()) {
+            Player playerToAdd = Player.from(playerId,event.turnPlayerName());
+            turn.playerQueue().add(playerToAdd);
+        }
+
+        if (turn == null){
+            throw new IllegalStateException("Turn wasn't instantiated properly. Did you generate the board?");
+        }
+        if (turn.playerQueue().isEmpty()) {
+            throw new IllegalStateException("For some unexpected reason playerQueue is empty");
+        }
+
+        Stack<Player> turnReverse = new Stack<Player>();
+        Queue<Player> playerQueue = new LinkedList<>(turn.playerQueue());
+
+        while (!playerQueue.isEmpty()) {
+            turnReverse.push(playerQueue.poll());
+        }
+
+        while (!turnReverse.isEmpty()) {
+            playerQueue.add(turnReverse.pop());
+        }
+
+        Player playerInTurn = playerQueue.poll();
+        playerQueue.add(playerInTurn);
+
+        if (playerInTurn == null) {
+            throw new IllegalStateException("For some reason playerInTurn was null");
+        }
+
+        turn.updateTurn(playerInTurn, playerQueue);
+    }
+
+    private void addedResourceToPlayer(Board board, AddedResourceToPlayer event) {
+        Corner corner = Corner.from(CornerId.of(event.cornerId()),
+                IsCornerAvailable.of(event.isCornerAvailable()));
+
+        corner.putStructure(Structure.of(StructureTypeEnum.SETTLEMENT, PlayerId.of(event.playerId())));
+
+        board.corner.add(corner);
+
+        List<Corner> corners = board.corner;
+
+        Optional<Corner> foundCorner = corners.stream()
+                .filter(o -> o.identity().equals(corner.identity()))
+                .findFirst();
+
+        if (foundCorner.isEmpty()) {
+            throw new IllegalStateException("Corner don't exist");
+        }
+        Player player = Player.from(event.playerId(), event.playerName());
+
+        List<Resource> resourceBoardAggregate = foundCorner.get().addResourceToPlayer(player);
+        final String QUANTITY = "QUANTITY";
+        final String NAME = "NAME";
+
+        for (Resource resource:resourceBoardAggregate) {
+            player.addResources(com.example.catanddd.domain.player.values.Resource.of(
+                    (Integer) resource.value().get(QUANTITY),
+                    (ResourceEnum) resource.value().get(NAME)
+            ));
+        }
+    }
+    private void knightMovedTo(Board board, KnightMovedTo event){
+        Knight knight = board.knight;
+
+        if (knight == null){
+            throw new IllegalStateException("Knight wasn't instantiated properly. Did you generate the board?");
+        }
+        Terrain terrain =  Terrain.from(TerrainId.of(event.terrainId()));
+
+        if (terrain.isKnightHere()) {
+            throw new IllegalStateException("Knight is already here");
+        }
+
+        if (knight.terrainLocated() != null){
+            knight.terrainLocated().setKnight(null);
+        }
+
+        knight.moveTo(terrain);
+    }
     private void terrainValidations(Board board, Terrain terrain){
         if (board.terrains().size() < 19){
             internalTerrainValidations(board,terrain);

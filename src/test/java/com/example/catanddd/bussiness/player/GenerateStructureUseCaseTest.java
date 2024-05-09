@@ -81,6 +81,54 @@ class GenerateStructureUseCaseTest {
     }
 
     @Test
+    void generateStructureButIsCITY() {
+
+        List<String> resources = new ArrayList<>();
+
+        resources.add(ResourceEnum.WOOD.name());
+        resources.add(ResourceEnum.BRICK.name());
+        resources.add(ResourceEnum.SHEEP.name());
+        resources.add(ResourceEnum.WHEAT.name());
+        resources.add(ResourceEnum.ORE.name());
+
+        List<TerrainId> terrainIds = new ArrayList<>();
+
+        terrainIds.add(TerrainId.of("terrain1"));
+        terrainIds.add(TerrainId.of("terrain2"));
+        terrainIds.add(TerrainId.of("terrain3"));
+        GenerateStructureCommand generateStructureCommand = new GenerateStructureCommand(
+                "playerIdTest",
+                "structureId",
+                StructureTypeEnum.CITY.name(),
+                terrainIds
+        );
+
+        GeneratedPlayer generatedPlayer = new GeneratedPlayer(
+                "playerIdTest",
+                "playerNameBrian",
+                0,
+                resources,
+                new ArrayList<>()
+        );
+        generatedPlayer.setAggregateRootI("playerIdTest");
+
+        List<DomainEvent> domainEvents = new ArrayList<>();
+
+        domainEvents.add(generatedPlayer);
+
+        Mockito.when(eventsRepository.findAggregateRootId("playerIdTest")).thenReturn(domainEvents);
+
+        List<DomainEvent> result = generateStructureUseCase.apply(generateStructureCommand);
+
+        GeneratedStructure generatedStructure = (GeneratedStructure) result.get(0);
+
+        assertEquals(generatedStructure.playerId(), "playerIdTest");
+        assertEquals(generatedStructure.structureId(), "structureId");
+        assertEquals(generatedStructure.structureType(), StructureTypeEnum.CITY.name());
+        assertEquals(generatedStructure.terrainsRelated(), terrainIds);
+
+    }
+    @Test
     void generateStructureNullAggregateId() {
 
         List<String> resources = new ArrayList<>();

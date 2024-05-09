@@ -6,19 +6,5 @@ public class StructurePrimitive {
 
     private String structureType;
 
-    public StructurePrimitive(String structureId, String structureType) {
-        this.structureId = structureId;
-        this.structureType = structureType;
-    }
 
-    public StructurePrimitive() {
-    }
-
-    public String getStructureId() {
-        return structureId;
-    }
-
-    public String getStructureType() {
-        return structureType;
-    }
 }

@@ -199,6 +199,42 @@ class GenerateTerrainUseCaseTest {
         assertNotEquals(terrainList.size(),domainEvents.size() - DOMAIN_EVENTS_MINUS_CREATION_BOARD);
     }
 
+    @Test
+    void generateTerrainNotProperType() {
+        List<String> playersIds = new ArrayList<>();
+
+
+        playersIds.add("brian");
+        playersIds.add("juan");
+        playersIds.add("pedro");
+        playersIds.add("valeria");
+
+        GeneratedBoard generatedBoard = new GeneratedBoard(
+                0,
+                "testKnightId",
+                "testTurnId",
+                "brian",
+                playersIds,
+                "brianInTurnId"
+        );
+
+        generatedBoard.setAggregateRootI("testBoardId");
+        List<DomainEvent> domainEvents = new ArrayList<>();
+
+        domainEvents.add(generatedBoard);
+
+        Mockito.when(eventsRepository.findAggregateRootId("testBoardId")).thenReturn(domainEvents);
+
+        GenerateTerrainCommand generatedTerrainCommand = new GenerateTerrainCommand(
+                "testBoardId",
+                "terrainUnique",
+                0,
+                "EXAMPLEBOOMCASE"
+        );
+
+        assertThrows((IllegalArgumentException.class),()-> generateTerrainUseCase.apply(generatedTerrainCommand));
+    }
+
     private static List<Integer> generateTerrainNumbers() {
         List<Integer> numerosTerrenos = new ArrayList<>();
 

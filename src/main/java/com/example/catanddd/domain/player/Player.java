@@ -7,6 +7,7 @@ import com.example.catanddd.domain.player.entities.structure.Structure;
 import com.example.catanddd.domain.player.events.GeneratedPlayer;
 import com.example.catanddd.domain.player.events.GeneratedStructure;
 import com.example.catanddd.domain.player.events.primitives.StructurePrimitive;
+import com.example.catanddd.domain.player.events.structure.UpdatedSettlement;
 import com.example.catanddd.domain.player.values.PlayerId;
 
 import com.example.catanddd.domain.player.values.PlayerName;
@@ -56,6 +57,9 @@ public class Player extends AggregateRoot<PlayerId> {
         return points.value();
     }
 
+    public void addPoints(int points){
+        this.points = Points.of(this.points.value()  + points);
+    }
     public List<Resource> resources() {
         return resources;
     }
@@ -66,6 +70,12 @@ public class Player extends AggregateRoot<PlayerId> {
 
     public void generateStructure(String playerId, String structureId, String structureType, List<TerrainId> terrainRelated){
         appendChangeEvent(new GeneratedStructure(playerId, structureId, structureType,terrainRelated)).apply();
+    }
+
+    public void updateSettlement(String playerId, Integer playerPoints, List<String> resourcesType, List<Integer> resourcesQuantity, String structureId,
+                                 String structureType, List<String> terrainsRelated){
+        appendChangeEvent(new UpdatedSettlement(playerId, playerPoints,resourcesType, resourcesQuantity, structureId,
+                structureType, terrainsRelated)).apply();
     }
 
     public void addResources(Resource resource){

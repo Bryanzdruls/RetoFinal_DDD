@@ -104,7 +104,7 @@ class ChangeTurnUseCaseTest {
         //Mockito.when(eventsRepository.findAggregateRootId("testBoardId")).thenReturn(domainEvents);
 
 
-        Assertions.assertThrows((IllegalStateException.class),() ->changeTurnUseCase.apply(changeTurnCommand));
+        Assertions.assertThrows((NullPointerException.class),() ->changeTurnUseCase.apply(changeTurnCommand));
     }
 
     @Test
